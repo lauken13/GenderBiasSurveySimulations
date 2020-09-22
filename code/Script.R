@@ -38,7 +38,7 @@ rownames(mat_condition) <- c("none","m,f same","f,o same", "all diff")
 
 popn_demog <- c(.49,.49,.02)
 nrep = 100
-nsamp = 500
+nsamp = 1000
 
 store_df <- expand.grid(cond = 1:4, reps=1:nrep, impute = c("sample","popn"), method = c("popn prop","impute female","bad model estimate","best model estimate","remove"), prop_resp_male = seq(0,1,.01),
                         est_imp = NA, est_true = NA, popn_val = NA, 
@@ -68,7 +68,7 @@ for (i in 1:nrow(store_df)) {
         c('m', 'f'),
         size = sum(df_samp$gender == "m"),
         replace = TRUE,
-        prob = c(1 - .01, .01)
+        prob = c(1 - .005, .005)
       ),
       ifelse(
         df_samp$gender == "f",
@@ -76,7 +76,7 @@ for (i in 1:nrow(store_df)) {
           c('m', 'f'),
           sum(df_samp$gender == "f"),
           replace = TRUE,
-          prob = c(.01, 1 - .01)
+          prob = c(.005, 1 - .005)
         ),
         ifelse(
           store_df$prop_resp_male[i] == 1,
@@ -168,8 +168,11 @@ if(store_df$impute[i] == "sample"){
   store_df$popn_val_male[i] <- mat_condition[cond, 2]
   store_df$popn_val_female[i] <- mat_condition[cond, 3]
   store_df$popn_val_other[i] <- mat_condition[cond, 4]
-  print(i)``
+  print(i)
 }
+
+saveRDS(store_df,"results/sim_results.rds")
+
 
 summary_df <- store_df %>% 
   group_by(prop_resp_male, cond, method, impute)%>%

@@ -2,16 +2,17 @@ library(tidyverse)
 library(viridis)
 library(survey)
 library(ggplot2)
+library(tictoc)
 
 impute_sex <- function (x,method,p = NA, true_x = NA){
   if(method == "popn prop"){
     sex = ifelse(x %in% c('m','f'),c('m','f')[x],
-                 sample(c('m','f'),size = sum(x %in% 'o'),replace=TRUE,prob=c(.5,.5)))
+                 sample(c('m','f'),size = sum(x %in% 'nb'),replace=TRUE,prob=c(.5,.5)))
   } else if(method == "impute female"){
     sex = ifelse(x %in% c('m','f'),c('m','f')[x],'f')
   } else if(method == "bad model estimate"){
     sex = ifelse(x %in% c('m','f'),c('f','m')[x],
-                 sample(c('m','f'),size = sum(x %in% 'o'),replace=TRUE,prob=p))
+                 sample(c('m','f'),size = sum(x %in% 'nb'),replace=TRUE,prob=p))
   } else if(method == "best model estimate"){
     sex = true_x
   } else if(method == "remove"){
@@ -34,30 +35,29 @@ mat_condition = as.matrix(data.frame(cond = 1:4,
                           y_mean_m = c(0,10,10,10),
                           y_mean_f = c(0,10, 0, -10),
                           y_mean_o = c(0, 0, 0, 0)))
-rownames(mat_condition) <- c("none","m,f same","f,o same", "all diff")
+rownames(mat_condition) <- c("none","m,f same","f,nb same", "all diff")
 
 popn_demog <- c(.49,.49,.02)
-nrep = 100
-nsamp = 1000
+nrep = 500
+nsamp = 500
 
 store_df <- expand.grid(cond = 1:4, reps=1:nrep, impute = c("sample","popn"), method = c("popn prop","impute female","bad model estimate","best model estimate","remove"), prop_resp_male = seq(0,1,.01),
                         est_imp = NA, est_true = NA, popn_val = NA, 
                         est_gender_male = NA, est_gender_female = NA, est_gender_other = NA, 
                         est_sex_male = NA, est_sex_female = NA,  
-                        popn_val_male = NA, popn_val_female = NA, popn_val_other = NA)
+                        popn_val_male = NA, popn_val_female = NA, popn_val_other = NA, time= NA)
 keep_sims <- store_df$impute=="sample" | (store_df$impute=="popn" & store_df$method %in% c("popn prop","best model estimate"))
 store_df<-store_df[keep_sims,]
-
-
-for (i in 1:nrow(store_df)) {
+for (i in 1212808:nrow(store_df)) {
+  tic()
   df_samp <-
     data.frame(gender = sample(
-      c('m', 'f', 'o'),
+      c('m', 'f', 'nb'),
       size = nsamp,
       replace = TRUE,
       prob = popn_demog
     ))
-  df_samp$gender <- factor(df_samp$gender, level = c('m', 'f', 'o'))
+  df_samp$gender <- factor(df_samp$gender, level = c('m', 'f', 'nb'))
   cond <- store_df$cond[i]
   df_samp$y <-
     rnorm(nsamp, mat_condition[cond, as.numeric(df_samp$gender) + 1], 1)
@@ -68,7 +68,7 @@ for (i in 1:nrow(store_df)) {
         c('m', 'f'),
         size = sum(df_samp$gender == "m"),
         replace = TRUE,
-        prob = c(1 - .005, .005)
+        prob = c(1 - .04, .04)
       ),
       ifelse(
         df_samp$gender == "f",
@@ -76,7 +76,7 @@ for (i in 1:nrow(store_df)) {
           c('m', 'f'),
           sum(df_samp$gender == "f"),
           replace = TRUE,
-          prob = c(.005, 1 - .005)
+          prob = c(.04, 1 - .04)
         ),
         ifelse(
           store_df$prop_resp_male[i] == 1,
@@ -87,7 +87,7 @@ for (i in 1:nrow(store_df)) {
             sample(
               c('m', 'f'),
               replace = TRUE,
-              sum(df_samp$gender == "o" &
+              sum(df_samp$gender == 'nb' &
                     !store_df$prop_resp_male[i] %in% c(0, 1)),
               prob = c(store_df$prop_resp_male[i], 1 - store_df$prop_resp_male[i])
             )
@@ -139,14 +139,14 @@ if(store_df$impute[i] == "sample"){
     c(
       nsamp * imp_prop_popn[1] / sum(df_samp$gender == "m", na.rm = TRUE),
       nsamp * imp_prop_popn[2] / sum(df_samp$gender == "f", na.rm = TRUE),
-      nsamp * imp_prop_popn[3] / sum(df_samp$gender == "o", na.rm = TRUE)
+      nsamp * imp_prop_popn[3] / sum(df_samp$gender == 'nb', na.rm = TRUE)
     )
   df_samp$imp_wts <- imp_weights[as.numeric(df_samp$gender)]
   true_weights <-
     c(
       nsamp * true_prop_gender[1] / sum(df_samp$gender == "m", na.rm = TRUE),
       nsamp * true_prop_gender[2] / sum(df_samp$gender == "f", na.rm = TRUE),
-      nsamp * true_prop_gender[3] / sum(df_samp$gender == "o", na.rm = TRUE)
+      nsamp * true_prop_gender[3] / sum(df_samp$gender == 'nb', na.rm = TRUE)
     )
   df_samp$true_wts <-
     true_weights[as.numeric(df_samp$gender)]
@@ -163,12 +163,17 @@ if(store_df$impute[i] == "sample"){
     sum((df_samp$y * df_samp$imp_wts)[df_samp$gender == "f"], na.rm = TRUE) /
     sum(df_samp$imp_wts[df_samp$gender == "f"], na.rm = TRUE)
   store_df$est_gender_other[i] <-
-    sum((df_samp$y * df_samp$imp_wts)[df_samp$gender == "o"], na.rm = TRUE) /
-    sum(df_samp$imp_wts[df_samp$gender == "o"], na.rm = TRUE)
+    sum((df_samp$y * df_samp$imp_wts)[df_samp$gender == 'nb'], na.rm = TRUE) /
+    sum(df_samp$imp_wts[df_samp$gender == 'nb'], na.rm = TRUE)
   store_df$popn_val_male[i] <- mat_condition[cond, 2]
   store_df$popn_val_female[i] <- mat_condition[cond, 3]
   store_df$popn_val_other[i] <- mat_condition[cond, 4]
-  print(i)
+  if((i%% 20)==0){
+    print(paste(i/nrow(store_df)*100,"% complete"))
+    b <- toc(quiet = TRUE)
+    store_df$time[i] <- (b$toc - b$tic)/3600
+    print(paste(mean(store_df$time, na.rm = TRUE)*(nrow(store_df)-i)/20, "hrs remaining")) 
+  }
 }
 
 saveRDS(store_df,"results/sim_results.rds")
@@ -186,7 +191,7 @@ summary_df <- store_df %>%
 
 summary_df$method_type <- as.factor(summary_df$method_type)
 
-summary_df$cond <- factor(summary_df$cond, labels = c("No gender differences","Male, female same, other different","Female, other same, male different", "All different"))
+summary_df$cond <- factor(summary_df$cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))
 
 
 cols <- c("best model estimate_sample" = "darkblue", 
@@ -201,7 +206,7 @@ col_labels <- c("best model estimate_sample" = "Estimate sex in sample, best mod
           "popn prop_sample" = "Estimate sex in sample, by popn prop", 
           "popn prop_popn"  = "Estimate gender in popn, by popn prop",
           "bad model estimate_sample" = "Estimate sex in sample, worst model",
-          "remove_sample" =  "Remove those who respond other",
+          "remove_sample" =  "Remove those who respond non-binary",
           "impute female_sample" =  "Estimate female sex for those who respond other")
 
 ggplot(summary_df, aes(x=prop_resp_male,y=bias_imp_mean, colour = method_type, fill = method_type))+
@@ -236,7 +241,7 @@ summary_df_long <- summary_df %>%
          bias_mse_up ="up")
 
 to_sex <- as_labeller(c(`female` = "Female Sex", `male` = "Male Sex"))
-to_gender <- as_labeller(c(`female` = "Female Gender", `male` = "Male Gender", `other` = "Other Gender"))
+to_gender <- as_labeller(c(`female` = "Female Gender", `male` = "Male Gender", `other` = "Non-binary Gender"))
 
 ggplot(summary_df_long, aes(x=prop_resp_male,y=bias_mse,
                             colour = method_type, fill = method_type))+

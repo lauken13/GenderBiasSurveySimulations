@@ -100,7 +100,7 @@ for (i in 1:nrow(conditions_df)) {
         c('m', 'f'),
         size = 1,
         replace = TRUE,
-        prob = c(1 - .04, .04)
+        prob = c(1 - .01, .01)
       ),
       ifelse(
         df_popn$gender[j] == "f",
@@ -108,7 +108,7 @@ for (i in 1:nrow(conditions_df)) {
           c('m', 'f'),
           1,
           replace = TRUE,
-          prob = c(.04, 1 - .04)
+          prob = c(.01, 1 - .01)
         ),
         ifelse(
           conditions_df$prop_resp_male[i] == 1,

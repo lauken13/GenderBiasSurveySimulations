@@ -15,7 +15,7 @@ options(brms.backend = 'cmdstanr')
 impute_sex <- function (x,method,p = NA, true_x = NA){
   if(method == "popn prop"){
     sex = ifelse(x %in% c('m','f'),c('m','f')[x],
-                 sample(c('m','f'),size = sum(x %in% 'nb'),replace=TRUE,prob=c(.5,.5)))
+                 sample(c('m','f'),size = sum(x %in% 'nb'),replace=TRUE,prob=p))
   } 
   sex <- factor(sex, level = c('m','f'))
   return(sex)
@@ -148,7 +148,7 @@ for (i in 1:nrow(conditions_df)) {
         impute_sex(
           df_samp$gender,
           method = "popn prop",
-          p = c(.5, .5),
+          p = prop.table(table(df_popn$true_sex_answer)),
           true_x = df_samp$true_sex_answer
         )
       df_popn$imp_sex <- df_popn$true_sex_answer
@@ -277,11 +277,12 @@ for (i in 1:nrow(conditions_df)) {
   }
   else if(grepl("Impute Gender",conditions_df$method[i])){
     if(conditions_df$method[i] == "Impute Gender - Popn Demographics"){
+      
       df_popn$imp_gender <-
         impute_gender(
           df_popn$true_sex_answer,
           method = "popn prop",
-          p = c(.5, .5))
+          p = prop.table(table(df_popn$gender)))
       df_samp$imp_gender <- df_samp$gender
       df_secondary$imp_gender <- df_secondary$gender
     }

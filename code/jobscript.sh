@@ -1,12 +1,12 @@
 #!/bin/sh
 
 #SBATCH --job-name=batch_bb_np
-#SBATCH --time=3:30:00
+#SBATCH --time=8:00:00
 #SBATCH --mail-user=lauren.kennedy1@monash.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mem-per-cpu=4000
 #SBATCH --cpus-per-task=1
-#SBATCH --array=201-500
+#SBATCH --array=297
 
 module load R/4.0.0-openblas
 

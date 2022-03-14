@@ -1,0 +1,787 @@
+---
+title: "Figures Appendix"
+author: "Lauren Kennedy"
+date: "11/03/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+library(here)
+library(viridis)
+
+results_biasvar <- readRDS(here(paste0("results/sim_results_biasvar_",1,".rds"))) %>%
+  mutate(iteration = 1)
+
+for(iteration in c(1:296,298:500)) {
+  tmp <- readRDS(here(paste0("results/sim_results_biasvar_",iteration,".rds"))) %>%
+    mutate(iteration = iteration)
+  results_biasvar <- rbind(tmp,results_biasvar)
+}
+
+```
+
+## Focussing on when all genders have different E[Y]
+
+We see that the response behaviour impacts the efficacy of using demographics.
+
+Note that imputation error isn't included in uncertainty
+
+```{r}
+bias_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_hline(yintercept=0)+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate)+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Bias at estimating population mean")
+
+bias_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_bias_alldiff.png",bias_pop, width = 20, height = 10, units = "cm")
+```
+
+
+
+```{r}
+            
+width_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_width = mean(ci_width_y), low025 = quantile(ci_width_y, .025), up975 = quantile(ci_width_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_width, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+width_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_width_alldiff.png",width_pop, width = 20, height = 10, units = "cm")
+```
+
+### Focussing on sex sub group estimates
+
+Sex bias in estimates
+
+```{r}
+bias_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_sex_f,bias_y_sex_m)%>%
+  pivot_longer(cols = starts_with("bias_y_sex_"), 
+               names_to = "sex",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "bias_y_sex_f","Male" = "bias_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_alldiff.png",bias_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+Sex bias in estimates
+
+```{r}
+ciwidth_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select(cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_sex_f,ci_width_y_sex_m)%>%
+  pivot_longer(cols = starts_with("ci_width_y_sex_"), 
+               names_to = "sex",
+               values_to = "ciwidth_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "ci_width_y_sex_f","Male" = "ci_width_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(ciwidth = mean(ciwidth_y), low025 = quantile(ciwidth_y, .025), up975 = quantile(ciwidth_y, .975))%>%
+  ggplot(., aes(x=method, y = ciwidth, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+ciwidth_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_alldiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+### Focussing on gender sub group estimates
+
+gender bias in estimates
+
+```{r}
+bias_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_gender_f,bias_y_gender_m,bias_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("bias_y_gender_"), 
+               names_to = "gender",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "bias_y_gender_f","Male" = "bias_y_gender_m","Non-binary" = "bias_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_bias = mean(bias_y,na.rm = TRUE), low025 = quantile(bias_y, .025,na.rm = TRUE), up975 = quantile(bias_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_alldiff.png",bias_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+Gender interval width
+
+```{r}
+ci_width_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="All different")%>%
+  select( cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_gender_f,ci_width_y_gender_m,ci_width_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("ci_width_y_gender_"), 
+               names_to = "gender",
+               values_to = "ci_width_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "ci_width_y_gender_f","Male" = "ci_width_y_gender_m","Non-binary" = "ci_width_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_ci_width = mean(ci_width_y,na.rm = TRUE), low025 = quantile(ci_width_y, .025,na.rm = TRUE), up975 = quantile(ci_width_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_ci_width, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate ci_width")
+
+ci_width_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_alldiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+
+### Focussing on when all genders have same E[Y]
+
+We see that the response behaviour impacts the efficacy of using demographics.
+
+Note that imputation error isn't included in uncertainty
+
+```{r}
+bias_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_hline(yintercept=0)+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate)+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Bias at estimating population mean")
+
+bias_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_bias_nodiff.png",bias_pop, width = 20, height = 10, units = "cm")
+```
+
+
+
+```{r}
+            
+width_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_width = mean(ci_width_y), low025 = quantile(ci_width_y, .025), up975 = quantile(ci_width_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_width, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+width_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_width_nodiff.png",width_pop, width = 20, height = 10, units = "cm")
+```
+
+### Focussing on sex sub group estimates
+
+Sex bias in estimates
+
+```{r}
+bias_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_sex_f,bias_y_sex_m)%>%
+  pivot_longer(cols = starts_with("bias_y_sex_"), 
+               names_to = "sex",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "bias_y_sex_f","Male" = "bias_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_nodiff.png",bias_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+Sex bias in estimates
+
+```{r}
+ciwidth_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select(cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_sex_f,ci_width_y_sex_m)%>%
+  pivot_longer(cols = starts_with("ci_width_y_sex_"), 
+               names_to = "sex",
+               values_to = "ciwidth_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "ci_width_y_sex_f","Male" = "ci_width_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(ciwidth = mean(ciwidth_y), low025 = quantile(ciwidth_y, .025), up975 = quantile(ciwidth_y, .975))%>%
+  ggplot(., aes(x=method, y = ciwidth, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+ciwidth_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nodiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+### Focussing on gender sub group estimates
+
+gender bias in estimates
+
+```{r}
+bias_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_gender_f,bias_y_gender_m,bias_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("bias_y_gender_"), 
+               names_to = "gender",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "bias_y_gender_f","Male" = "bias_y_gender_m","Non-binary" = "bias_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_bias = mean(bias_y,na.rm = TRUE), low025 = quantile(bias_y, .025,na.rm = TRUE), up975 = quantile(bias_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_nodiff.png",bias_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+Gender interval width
+
+```{r}
+ci_width_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="No gender differences")%>%
+  select( cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_gender_f,ci_width_y_gender_m,ci_width_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("ci_width_y_gender_"), 
+               names_to = "gender",
+               values_to = "ci_width_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "ci_width_y_gender_f","Male" = "ci_width_y_gender_m","Non-binary" = "ci_width_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_ci_width = mean(ci_width_y,na.rm = TRUE), low025 = quantile(ci_width_y, .025,na.rm = TRUE), up975 = quantile(ci_width_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_ci_width, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate ci_width")
+
+ci_width_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nodiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+
+## Focussing on where non-binary folks have different experiences
+
+We see that the response behaviour impacts the efficacy of using demographics.
+
+Note that imputation error isn't included in uncertainty
+
+```{r}
+bias_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_hline(yintercept=0)+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate)+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Bias at estimating population mean")
+
+bias_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_bias_nbdiff.png",bias_pop, width = 20, height = 10, units = "cm")
+```
+
+
+
+```{r}
+            
+width_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_width = mean(ci_width_y), low025 = quantile(ci_width_y, .025), up975 = quantile(ci_width_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_width, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+width_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_width_nbdiff.png",width_pop, width = 20, height = 10, units = "cm")
+```
+
+### Focussing on sex sub group estimates
+
+Sex bias in estimates
+
+```{r}
+bias_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_sex_f,bias_y_sex_m)%>%
+  pivot_longer(cols = starts_with("bias_y_sex_"), 
+               names_to = "sex",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "bias_y_sex_f","Male" = "bias_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_nbdiff.png",bias_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+Sex bias in estimates
+
+```{r}
+ciwidth_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select(cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_sex_f,ci_width_y_sex_m)%>%
+  pivot_longer(cols = starts_with("ci_width_y_sex_"), 
+               names_to = "sex",
+               values_to = "ciwidth_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "ci_width_y_sex_f","Male" = "ci_width_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(ciwidth = mean(ciwidth_y), low025 = quantile(ciwidth_y, .025), up975 = quantile(ciwidth_y, .975))%>%
+  ggplot(., aes(x=method, y = ciwidth, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+ciwidth_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nbdiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+### Focussing on gender sub group estimates
+
+gender bias in estimates
+
+```{r}
+bias_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_gender_f,bias_y_gender_m,bias_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("bias_y_gender_"), 
+               names_to = "gender",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "bias_y_gender_f","Male" = "bias_y_gender_m","Non-binary" = "bias_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_bias = mean(bias_y,na.rm = TRUE), low025 = quantile(bias_y, .025,na.rm = TRUE), up975 = quantile(bias_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_nbdiff.png",bias_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+Gender interval width
+
+```{r}
+ci_width_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Male, female same, non-binary different")%>%
+  select( cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_gender_f,ci_width_y_gender_m,ci_width_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("ci_width_y_gender_"), 
+               names_to = "gender",
+               values_to = "ci_width_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "ci_width_y_gender_f","Male" = "ci_width_y_gender_m","Non-binary" = "ci_width_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_ci_width = mean(ci_width_y,na.rm = TRUE), low025 = quantile(ci_width_y, .025,na.rm = TRUE), up975 = quantile(ci_width_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_ci_width, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate ci_width")
+
+ci_width_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nbdiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+## Focussing on where men have different experiences
+
+We see that the response behaviour impacts the efficacy of using demographics.
+
+Note that imputation error isn't included in uncertainty
+
+```{r}
+bias_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_hline(yintercept=0)+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate)+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Bias at estimating population mean")
+
+bias_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_bias_malediff.png",bias_pop, width = 20, height = 10, units = "cm")
+```
+
+
+
+```{r}
+            
+width_pop = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select(bias_y, ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method)%>%
+  group_by(method, nb_representation, prop_resp_male, estimate)%>%
+  summarise(mean_width = mean(ci_width_y), low025 = quantile(ci_width_y, .025), up975 = quantile(ci_width_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_width, ymin =low025, ymax=up975, colour = nb_representation))+
+  geom_point(position = position_dodge(.5))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.5))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  ggthemes::scale_color_colorblind()+
+  theme_bw()+
+  coord_flip()+
+  labs(colour = "Representation of non-binary individuals")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+width_pop
+
+ggsave("Appendix_Figures/mrp_wtd_y_width_malediff.png",width_pop, width = 20, height = 10, units = "cm")
+```
+
+### Focussing on sex sub group estimates
+
+Sex bias in estimates
+
+```{r}
+bias_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_sex_f,bias_y_sex_m)%>%
+  pivot_longer(cols = starts_with("bias_y_sex_"), 
+               names_to = "sex",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "bias_y_sex_f","Male" = "bias_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(mean_bias = mean(bias_y), low025 = quantile(bias_y, .025), up975 = quantile(bias_y, .975))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_malediff.png",bias_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+Sex bias in estimates
+
+```{r}
+ciwidth_sex = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select(cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_sex_f,ci_width_y_sex_m)%>%
+  pivot_longer(cols = starts_with("ci_width_y_sex_"), 
+               names_to = "sex",
+               values_to = "ciwidth_y", names_repair = "unique")%>%
+  mutate(sex = fct_recode(sex,"Female" = "ci_width_y_sex_f","Male" = "ci_width_y_sex_m"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,sex)%>%
+  summarise(ciwidth = mean(ciwidth_y), low025 = quantile(ciwidth_y, .025), up975 = quantile(ciwidth_y, .975))%>%
+  ggplot(., aes(x=method, y = ciwidth, ymin =low025, ymax=up975, colour = sex, shape = nb_representation))+
+  geom_point(position = position_dodge(.8))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.8))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "Sex")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Width of uncertainty")
+
+ciwidth_sex
+
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_malediff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+
+```
+
+
+### Focussing on gender sub group estimates
+
+gender bias in estimates
+
+```{r}
+bias_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select(ci_width_y, cond, estimate,reps, prop_resp_male, nb_representation,method,bias_y_gender_f,bias_y_gender_m,bias_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("bias_y_gender_"), 
+               names_to = "gender",
+               values_to = "bias_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "bias_y_gender_f","Male" = "bias_y_gender_m","Non-binary" = "bias_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_bias = mean(bias_y,na.rm = TRUE), low025 = quantile(bias_y, .025,na.rm = TRUE), up975 = quantile(bias_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_bias, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate Bias")
+
+bias_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_malediff.png",bias_gender, width = 20, height = 10, units = "cm")
+
+```
+
+
+Gender interval width
+
+```{r}
+ci_width_gender = results_biasvar %>%
+  mutate(cond =  factor(cond, labels = c("No gender differences","Male, female same, non-binary different","Female, non-binary same, male different", "All different"))) %>%
+  filter(cond =="Female, non-binary same, male different")%>%
+  select( cond, estimate,reps, prop_resp_male, nb_representation,method,ci_width_y_gender_f,ci_width_y_gender_m,ci_width_y_gender_nb)%>%
+  pivot_longer(cols = starts_with("ci_width_y_gender_"), 
+               names_to = "gender",
+               values_to = "ci_width_y", names_repair = "unique")%>%
+  mutate(gender = fct_recode(gender,"Female" = "ci_width_y_gender_f","Male" = "ci_width_y_gender_m","Non-binary" = "ci_width_y_gender_nb"))%>%
+  group_by(method, nb_representation, prop_resp_male, estimate,gender)%>%
+  summarise(mean_ci_width = mean(ci_width_y,na.rm = TRUE), low025 = quantile(ci_width_y, .025,na.rm = TRUE), up975 = quantile(ci_width_y, .975,na.rm = TRUE))%>%
+  ggplot(., aes(x=method, y = mean_ci_width, ymin =low025, ymax=up975, colour = gender, shape = nb_representation))+
+  geom_point(position = position_dodge(.9))+
+  geom_errorbar(width = 0,alpha = .3, position = position_dodge(.9))+
+  facet_grid(prop_resp_male~estimate, scales = "free_x")+
+  scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
+  theme_bw()+
+  coord_flip()+
+  labs(shape = "Representation of non-binary individuals", colour = "gender")+
+  theme(legend.position = "bottom",,
+        axis.title.y = element_blank())+
+  ylab("Estimate ci_width")
+
+ci_width_gender
+
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_malediff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+
+```

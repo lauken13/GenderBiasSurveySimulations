@@ -3,6 +3,8 @@ title: "Untitled"
 author: "Lauren Kennedy"
 date: "14/02/2022"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +23,7 @@ library(viridis)
 results_biasvar <- readRDS(here(paste0("results/sim_results_biasvar_",1,".rds"))) %>%
   mutate(iteration = 1)
 
-for(iteration in c(1:64,67:74,76:79,88:90,92:198,201:296,298:500)) {
+for(iteration in c(1:296,298:500)) {
   tmp <- readRDS(here(paste0("results/sim_results_biasvar_",iteration,".rds"))) %>%
     mutate(iteration = iteration)
   results_biasvar <- rbind(tmp,results_biasvar)

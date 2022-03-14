@@ -47,13 +47,15 @@ bias_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Bias at estimating population mean")
 
 bias_pop
+```
 
-ggsave("Appendix_Figures/mrp_wtd_y_bias_alldiff.png",bias_pop, width = 20, height = 10, units = "cm")
+```{r}
+ggsave("Appendix_Figures/mrp_wtd_y_bias_alldiff.png",bias_pop, width = 20, height = 20, units = "cm")
 ```
 
 
@@ -74,13 +76,13 @@ width_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 width_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_width_alldiff.png",width_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_width_alldiff.png",width_pop, width = 20, height = 20, units = "cm")
 ```
 
 ### Focussing on sex sub group estimates
@@ -106,13 +108,15 @@ bias_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_bias_alldiff.png",bias_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_alldiff.png",bias_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -138,13 +142,15 @@ ciwidth_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 ciwidth_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_alldiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_alldiff.png",ciwidth_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -171,14 +177,16 @@ bias_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_bias_alldiff.png",bias_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_alldiff.png",bias_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -203,14 +211,16 @@ ci_width_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
-  ylab("Estimate ci_width")
+  ylab("Width of uncertainty")
 
 ci_width_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_alldiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_alldiff.png",ci_width_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -238,13 +248,13 @@ bias_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Bias at estimating population mean")
 
 bias_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_bias_nodiff.png",bias_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_bias_nodiff.png",bias_pop, width = 20, height = 20, units = "cm")
 ```
 
 
@@ -265,13 +275,13 @@ width_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 width_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_width_nodiff.png",width_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_width_nodiff.png",width_pop, width = 20, height = 20, units = "cm")
 ```
 
 ### Focussing on sex sub group estimates
@@ -297,13 +307,15 @@ bias_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_bias_nodiff.png",bias_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_nodiff.png",bias_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -329,13 +341,15 @@ ciwidth_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 ciwidth_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nodiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nodiff.png",ciwidth_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -362,14 +376,16 @@ bias_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_bias_nodiff.png",bias_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_nodiff.png",bias_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -394,14 +410,16 @@ ci_width_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
-  ylab("Estimate ci_width")
+  ylab("Width of uncertainty")
 
 ci_width_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nodiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nodiff.png",ci_width_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -429,13 +447,13 @@ bias_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Bias at estimating population mean")
 
 bias_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_bias_nbdiff.png",bias_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_bias_nbdiff.png",bias_pop, width = 20, height = 20, units = "cm")
 ```
 
 
@@ -456,13 +474,13 @@ width_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 width_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_width_nbdiff.png",width_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_width_nbdiff.png",width_pop, width = 20, height = 20, units = "cm")
 ```
 
 ### Focussing on sex sub group estimates
@@ -488,13 +506,15 @@ bias_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_bias_nbdiff.png",bias_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_nbdiff.png",bias_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -520,13 +540,15 @@ ciwidth_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 ciwidth_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nbdiff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_nbdiff.png",ciwidth_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -553,14 +575,16 @@ bias_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_bias_nbdiff.png",bias_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_nbdiff.png",bias_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -585,14 +609,16 @@ ci_width_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
-  ylab("Estimate ci_width")
+  ylab("Width of uncertainty")
 
 ci_width_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nbdiff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_nbdiff.png",ci_width_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -619,13 +645,13 @@ bias_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Bias at estimating population mean")
 
 bias_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_bias_malediff.png",bias_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_bias_malediff.png",bias_pop, width = 20, height = 20, units = "cm")
 ```
 
 
@@ -646,13 +672,13 @@ width_pop = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(colour = "Representation of non-binary individuals")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 width_pop
 
-ggsave("Appendix_Figures/mrp_wtd_y_width_malediff.png",width_pop, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_y_width_malediff.png",width_pop, width = 20, height = 20, units = "cm")
 ```
 
 ### Focussing on sex sub group estimates
@@ -678,13 +704,15 @@ bias_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_bias_malediff.png",bias_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_bias_malediff.png",bias_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -710,13 +738,15 @@ ciwidth_sex = results_biasvar %>%
   theme_bw()+
   coord_flip()+
   labs(shape = "Representation of non-binary individuals", colour = "Sex")+
-  theme(legend.position = "bottom",,
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Width of uncertainty")
 
 ciwidth_sex
 
-ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_malediff.png",ciwidth_sex, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_sex_ciwidth_malediff.png",ciwidth_sex, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -743,14 +773,16 @@ bias_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
   ylab("Estimate Bias")
 
 bias_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_bias_malediff.png",bias_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_bias_malediff.png",bias_gender, width = 20, height = 20, units = "cm")
 
 ```
 
@@ -775,13 +807,15 @@ ci_width_gender = results_biasvar %>%
   scale_colour_manual(values = c("#009E73","#D55E00","#56B4E9"))+# colours from the colorbling palette in ggthemes
   theme_bw()+
   coord_flip()+
-  labs(shape = "Representation of non-binary individuals", colour = "gender")+
-  theme(legend.position = "bottom",,
+  labs(shape = "Representation of non-binary individuals", colour = "Gender")+
+  theme(legend.position = "bottom",
+        legend.box="vertical", 
+        legend.margin=margin(),
         axis.title.y = element_blank())+
-  ylab("Estimate ci_width")
+  ylab("Width of uncertainty")
 
 ci_width_gender
 
-ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_malediff.png",ci_width_gender, width = 20, height = 10, units = "cm")
+ggsave("Appendix_Figures/mrp_wtd_gender_ci_width_malediff.png",ci_width_gender, width = 20, height = 20, units = "cm")
 
 ```
